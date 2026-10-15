@@ -11,8 +11,8 @@ android {
         applicationId = "app.lorastudio"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     // Two apps from one project:
@@ -71,6 +71,8 @@ android {
     }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        // Avoid duplicate protobuf classes
+        resources.excludes += "META-INF/DEPENDENCIES"
     }
 }
 
@@ -78,6 +80,13 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
+
     // On-phone image generation (Google MediaPipe). Only in the Full app.
-    "fullImplementation"("com.google.mediapipe:tasks-vision-image-generator:latest.release")
+    // FIX: MediaPipe is compiled against full protobuf-java, but pulls
+    // protobuf-javalite which lacks Any.Builder.build() → NoSuchMethodError.
+    // Exclude javalite and force full protobuf-java (same fix as official samples).
+    "fullImplementation"("com.google.mediapipe:tasks-vision-image-generator:0.10.26.1") {
+        exclude(group = "com.google.protobuf", module = "protobuf-javalite")
+    }
+    "fullImplementation"("com.google.protobuf:protobuf-java:3.25.5")
 }
